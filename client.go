@@ -3,7 +3,7 @@ package go_psn_api
 import "fmt"
 
 type psn struct {
-	
+
 }
 
 func NewPsnApi () *psn {
