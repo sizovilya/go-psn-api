@@ -10,7 +10,7 @@ import (
 
 const (
 	authApi      = "https://auth.api.sonyentertainmentnetwork.com/2.0/"
-	usersApi     = "-prof.np.community.playstation.net/userProfile/v1/users/"
+	// usersApi     = "-prof.np.community.playstation.net/userProfile/v1/users/"
 	clientId     = "7c01ce37-cb6b-4938-9c1b-9e36fd5477fa"
 	clientSecret = "GNumO5QMsagNcO2q"
 	duid         = "00000007000801a8000000000000008241fdf6ab09ba863a20202020476f6f676c653a416e64726f696420534400000000000000000000000000000000"
