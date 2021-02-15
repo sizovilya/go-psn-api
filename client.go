@@ -1,6 +1,7 @@
 package psn
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -25,5 +26,10 @@ func NewPsnApi (lang, region, npsso, refreshToken, accessToken string) *psn {
 }
 
 func (p *psn) Auth() error {
+	tokens, err :=p.authRequest()
+	if err != nil {
+		return fmt.Errorf("Can't do auth request %w: ", err)
+	}
+	fmt.Println(tokens)
 	return nil
 }
