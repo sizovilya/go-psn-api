@@ -30,6 +30,16 @@ func (p *psn) Auth() error {
 	if err != nil {
 		return fmt.Errorf("Can't do auth request %w: ", err)
 	}
+	p.accessToken = tokens.AccessToken
+	p.refreshToken = tokens.RefreshToken
+	return nil
+}
+
+func (p *psn) RefreshTokens() error {
+	tokens, err :=p.refreshTokens()
+	if err != nil {
+		return fmt.Errorf("Can't refresh tokens %w: ", err)
+	}
 	fmt.Println(tokens)
 	return nil
 }
