@@ -97,7 +97,7 @@ func (p *psn) GetRefreshToken() string {
 func (p *psn) Auth() error {
 	tokens, err :=p.authRequest()
 	if err != nil {
-		return fmt.Errorf("can't do auth request %w: ", err)
+		return fmt.Errorf("can't do auth request: %w", err)
 	}
 	p.accessToken = tokens.AccessToken
 	p.refreshToken = tokens.RefreshToken
@@ -107,7 +107,7 @@ func (p *psn) Auth() error {
 func (p *psn) RefreshTokens() error {
 	tokens, err :=p.refreshTokens()
 	if err != nil {
-		return fmt.Errorf("can't refresh tokens %w: ", err)
+		return fmt.Errorf("can't do refresh tokens request %w: ", err)
 	}
 	p.accessToken = tokens.AccessToken
 	p.refreshToken = tokens.RefreshToken

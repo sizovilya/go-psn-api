@@ -1,11 +1,8 @@
 package psn
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
-	"strings"
 )
 
 const (
@@ -30,32 +27,14 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 	form.Add("scope", scope)
 	form.Add("grant_type", "sso_cookie")
 
-	req, err := http.NewRequest(
-		"POST",
-		fmt.Sprintf("%soauth/token", authApi),
-		strings.NewReader(form.Encode()),
-	)
+	var h = headers{}
+	h["Content-Type"] = "application/x-www-form-urlencoded"
+	h["Cookie"] = fmt.Sprintf("npsso=%s", p.npsso)
+
+	err = p.post(form, fmt.Sprintf("%soauth/token", authApi), h, &tokens)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new request %w: ", err)
+		return nil, fmt.Errorf("can't do post request: %w", err)
 	}
-
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Cookie", fmt.Sprintf("npsso=%s", p.npsso))
-
-	resp, err := p.http.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("can't execute request %w: ", err)
-	}
-
-	defer func() {
-		err = resp.Body.Close()
-	}()
-
-	err = json.NewDecoder(resp.Body).Decode(&tokens)
-	if err != nil {
-		return nil, fmt.Errorf("can't decode request %w: ", err)
-	}
-
 	return tokens, nil
 }
 
@@ -72,29 +51,12 @@ func (p *psn) refreshTokens() (tokens *tokens, err error) {
 	form.Add("scope", scope)
 	form.Add("grant_type", "refresh_token")
 
-	req, err := http.NewRequest(
-		"POST",
-		fmt.Sprintf("%soauth/token", authApi),
-		strings.NewReader(form.Encode()),
-	)
+	var h = headers{}
+	h["Content-Type"] = "application/x-www-form-urlencoded"
+
+	err = p.post(form, fmt.Sprintf("%soauth/token", authApi), h, &tokens)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new request %w: ", err)
-	}
-
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := p.http.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("can't execute request %w: ", err)
-	}
-
-	defer func() {
-		err = resp.Body.Close()
-	}()
-
-	err = json.NewDecoder(resp.Body).Decode(&tokens)
-	if err != nil {
-		return nil, fmt.Errorf("can't decode request %w: ", err)
+		return nil, fmt.Errorf("can't do post request: %w", err)
 	}
 
 	return tokens, nil
