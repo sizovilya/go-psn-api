@@ -1,0 +1,25 @@
+package psn
+
+var languages = []string{
+	"ja",
+	"en",
+	"en-GB",
+	"fr",
+	"es",
+	"es-MX",
+	"de",
+	"it",
+	"nl",
+	"pt",
+	"pt-BR",
+	"ru",
+	"pl",
+	"fi",
+	"da",
+	"no",
+	"sv",
+	"tr",
+	"ko",
+	"zh-CN",
+	"zh-TW",
+}

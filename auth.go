@@ -36,7 +36,7 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 		strings.NewReader(form.Encode()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Can't create new request %w: ", err)
+		return nil, fmt.Errorf("can't create new request %w: ", err)
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -44,7 +44,7 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 
 	resp, err := p.http.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Can't execute request %w: ", err)
+		return nil, fmt.Errorf("can't execute request %w: ", err)
 	}
 
 	defer func() {
@@ -53,7 +53,7 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 
 	err = json.NewDecoder(resp.Body).Decode(&tokens)
 	if err != nil {
-		return nil, fmt.Errorf("Can't decode request %w: ", err)
+		return nil, fmt.Errorf("can't decode request %w: ", err)
 	}
 
 	return tokens, nil
@@ -61,7 +61,7 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 
 func (p *psn) refreshTokens() (tokens *tokens, err error) {
 	if p.refreshToken == "" {
-		return nil, fmt.Errorf("Can't refresh tokens, refresh token is empty")
+		return nil, fmt.Errorf("can't refresh tokens, refresh token is empty")
 	}
 	form := url.Values{}
 	form.Add("app_context", "inapp_ios")
@@ -78,14 +78,14 @@ func (p *psn) refreshTokens() (tokens *tokens, err error) {
 		strings.NewReader(form.Encode()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Can't create new request %w: ", err)
+		return nil, fmt.Errorf("can't create new request %w: ", err)
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := p.http.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Can't execute request %w: ", err)
+		return nil, fmt.Errorf("can't execute request %w: ", err)
 	}
 
 	defer func() {
@@ -94,7 +94,7 @@ func (p *psn) refreshTokens() (tokens *tokens, err error) {
 
 	err = json.NewDecoder(resp.Body).Decode(&tokens)
 	if err != nil {
-		return nil, fmt.Errorf("Can't decode request %w: ", err)
+		return nil, fmt.Errorf("can't decode request %w: ", err)
 	}
 
 	return tokens, nil
