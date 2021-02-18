@@ -7,11 +7,13 @@ import (
 
 const (
 	authApi      = "https://auth.api.sonyentertainmentnetwork.com/2.0/"
-	// usersApi     = "-prof.np.community.playstation.net/userProfile/v1/users/"
-	clientId     = "7c01ce37-cb6b-4938-9c1b-9e36fd5477fa"
-	clientSecret = "GNumO5QMsagNcO2q"
+	// clientId     = "7c01ce37-cb6b-4938-9c1b-9e36fd5477fa"
+	clientId     = "71a7beb8-f21a-47d9-a604-2e71bee24fe0"
+	// clientSecret = "GNumO5QMsagNcO2q"
+	clientSecret = "xSk2YI8qJqZfeLQv"
 	duid         = "00000007000801a8000000000000008241fdf6ab09ba863a20202020476f6f676c653a416e64726f696420534400000000000000000000000000000000"
-	scope        = "kamaji:get_players_met+kamaji:get_account_hash+kamaji:activity_feed_submit_feed_story+kamaji:activity_feed_internal_feed_submit_story+kamaji:activity_feed_get_news_feed+kamaji:communities+kamaji:game_list+kamaji:ugc:distributor+oauth:manage_device_usercodes+psn:sceapp+user:account.profile.get+user:account.attributes.validate+user:account.settings.privacy.get+kamaji:activity_feed_set_feed_privacy+kamaji:satchel+kamaji:satchel_delete+user:account.profile.update+kamaji:url_preview"
+	// scope        = "kamaji:get_players_met+kamaji:get_account_hash+kamaji:activity_feed_submit_feed_story+kamaji:activity_feed_internal_feed_submit_story+kamaji:activity_feed_get_news_feed+kamaji:communities+kamaji:game_list+kamaji:ugc:distributor+oauth:manage_device_usercodes+psn:sceapp+user:account.profile.get+user:account.attributes.validate+user:account.settings.privacy.get+kamaji:activity_feed_set_feed_privacy+kamaji:satchel+kamaji:satchel_delete+user:account.profile.update+kamaji:url_preview"
+	scope        = "openid:age openid:content_ctrl kamaji:get_privacy_settings kamaji:get_account_hash openid:user_id openid:ctry_code openid:lang"
 )
 
 type tokens struct {
