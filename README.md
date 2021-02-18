@@ -14,4 +14,4 @@ Fully described here - https://tusticles.com/psn-php/first_login.html
 ### How to get client_id and client_secret
 - Go to https://account.sonyentertainmentnetwork.com/ and log in with your own credentials
 - Open Chrome Dev Tools, go to Network tab and find `token` request, url - https://auth.api.sonyentertainmentnetwork.com/2.0/oauth/token  
-<img src="assets/screen.png" width="350">
+  <img src="assets/screen.png" width="450">
