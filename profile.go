@@ -63,7 +63,7 @@ func (p *psn) GetProfileRequest(name string) (profile *Profile, err error) {
 	userResponse := &ProfileResponse{}
 	err = p.get(
 		fmt.Sprintf(
-			"https://%s%s%s/profile2?fields=onlineId,aboutMe,consoleAvailability,languagesUsed,avatarUrls,personalDetail,personalDetail(@default,profilePictureUrls),primaryOnlineStatus,trophySummary(level,progress,earnedTrophies),plus,isOfficiallyVerified,friendRelation,personalDetailSharing,presences(@default,platform),npId,blocking,following,currentOnlineId,displayableOldOnlineId,mutualFriendsCount,followerCount",
+			"https://%s%s%s/profile2?fields=onlineId,aboutMe,consoleAvailability,languagesUsed,avatarUrls,personalDetail,personalDetail(@default,profilePictureUrls),primaryOnlineStatus,trophySummary(level,progress,earnedTrophies),plus,isOfficiallyVerified,friendRelation,personalDetailSharing,presences(@default,platform),npId,blocking,following,currentOnlineId,displayableOldOnlineId,mutualFriendsCount,followerCount&profilePictureSizes=s,m,l&avatarSizes=s,m,l&languagesUsedLanguageSet=set4",
 			p.region,
 			usersApi,
 			name,
