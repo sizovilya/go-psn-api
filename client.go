@@ -6,15 +6,16 @@ import (
 )
 
 type psn struct {
-	http *http.Client
-	lang string
-	region string
-	npsso string
-	refreshToken string
-	accessToken string
+	http         *http.Client
+	lang         string
+	region       string
+	npsso        string
+	clientId     string
+	clientSecret string
+	accessToken  string
 }
 
-func NewPsnApi (lang, region, npsso, refreshToken, accessToken string) (*psn, error) {
+func NewPsnApi(lang, region, npsso, clientId, clientSecret string) (*psn, error) {
 	if !isContain(languages, lang) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported lang %s", lang)
 	}
@@ -24,13 +25,19 @@ func NewPsnApi (lang, region, npsso, refreshToken, accessToken string) (*psn, er
 	if npsso == "" {
 		return nil, fmt.Errorf("can't create psnapi: npsso is empty")
 	}
+	if clientId == "" {
+		return nil, fmt.Errorf("can't create psnapi: clientId is empty")
+	}
+	if clientSecret == "" {
+		return nil, fmt.Errorf("can't create psnapi: clientSecret is empty")
+	}
 	return &psn{
 		http:         &http.Client{},
 		lang:         lang,
 		region:       region,
 		npsso:        npsso,
-		refreshToken: refreshToken,
-		accessToken:  accessToken,
+		clientId:     clientId,
+		clientSecret: clientSecret,
 	}, nil
 }
 
@@ -70,46 +77,35 @@ func (p *psn) GetNPSSO() string {
 	return p.npsso
 }
 
-func (p *psn) SetAccessToken(accessToken string) error {
-	if accessToken == "" {
-		return fmt.Errorf("accessToken is empty")
+func (p *psn) SetClientId(clientId string) error {
+	if clientId == "" {
+		return fmt.Errorf("clientId is empty")
 	}
-	p.accessToken = accessToken
+	p.clientId = clientId
 	return nil
 }
 
-func (p *psn) GetAccessToken() string {
-	return p.accessToken
+func (p *psn) GetClientId() string {
+	return p.clientId
 }
 
-func (p *psn) SetRefreshToken(refreshToken string) error {
-	if refreshToken == "" {
-		return fmt.Errorf("refreshToken is empty")
+func (p *psn) SetClientSecret(clientSecret string) error {
+	if clientSecret == "" {
+		return fmt.Errorf("clientSecret is empty")
 	}
-	p.refreshToken = refreshToken
+	p.clientSecret = clientSecret
 	return nil
 }
 
-func (p *psn) GetRefreshToken() string {
-	return p.refreshToken
+func (p *psn) GetClientSecret() string {
+	return p.clientSecret
 }
 
 func (p *psn) Auth() error {
-	tokens, err :=p.authRequest()
+	tokens, err := p.authRequest()
 	if err != nil {
 		return fmt.Errorf("can't do auth request: %w", err)
 	}
 	p.accessToken = tokens.AccessToken
-	p.refreshToken = tokens.RefreshToken
-	return nil
-}
-
-func (p *psn) RefreshTokens() error {
-	tokens, err :=p.refreshTokens()
-	if err != nil {
-		return fmt.Errorf("can't do refresh tokens request: %w ", err)
-	}
-	p.accessToken = tokens.AccessToken
-	p.refreshToken = tokens.RefreshToken
 	return nil
 }

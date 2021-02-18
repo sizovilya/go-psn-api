@@ -33,6 +33,10 @@ func (p *psn) post(formData url.Values, url string, headers headers, value inter
 		err = resp.Body.Close()
 	}()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad request")
+	}
+
 	err = json.NewDecoder(resp.Body).Decode(&value)
 	if err != nil {
 		return fmt.Errorf("can't decode POST request %w: ", err)
@@ -64,9 +68,13 @@ func (p *psn) get(url string, headers headers, value interface{}) error {
 		err = resp.Body.Close()
 	}()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad request")
+	}
+
 	err = json.NewDecoder(resp.Body).Decode(&value)
 	if err != nil {
-		return fmt.Errorf("can't decode GET request %w: ", err)
+		return fmt.Errorf("can't decode POST request %w: ", err)
 	}
 
 	return nil
