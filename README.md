@@ -17,32 +17,41 @@ Fully described here - https://tusticles.com/psn-php/first_login.html
   <img src="assets/screen.png" width="450">
 ### Example    
 ```go
-	lang := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go
-	region := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go
-	npsso := "your npsso"
-	clientId := "your client_id"
-	clientSecret := "your secret"
-	psnApi, err := psn.NewPsnApi(
-		lang,
-		region,
-		npsso,
-		clientId,
-		clientSecret,
-	)
-	if err != nil {
-		panic(err)
-	}
-	// Firstly, you need to authenticate yourself
-	// This request will get access_token from Sony's server
-	err = psnApi.Auth()
-	if err != nil {
-		panic(err)
-	}
-	// How to get user's profile info
-	// Response is a Profile struct, see it here https://github.com/sizovilya/go-psn-api/blob/main/profile.go 
-	profile, err := psnApi.GetProfileRequest("geeek_52rus")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Print(profile)
+package main
+
+import (
+"fmt"
+"github.com/sizovilya/go-psn-api"
+)
+
+func main() {
+  lang := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go
+  region := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go
+  npsso := "your npsso"
+  clientId := "your client_id"
+  clientSecret := "your secret"
+  psnApi, err := psn.NewPsnApi(
+    lang,
+    region,
+    npsso,
+    clientId,
+    clientSecret,
+  )
+  if err != nil {
+    panic(err)
+  }
+  // Firstly, you need to authenticate yourself
+  // This request will get access_token from Sony's server
+  err = psnApi.Auth()
+  if err != nil {
+    panic(err)
+  }
+  // How to get user's profile info
+  // Response is a Profile struct, see it here https://github.com/sizovilya/go-psn-api/blob/main/profile.go 
+  profile, err := psnApi.GetProfileRequest("geeek_52rus")
+  if err != nil {
+    panic(err)
+  }
+  fmt.Print(profile)
+}
 ```
