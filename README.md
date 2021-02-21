@@ -14,6 +14,36 @@ Corresponding to my research how PSN works you need several things to interact w
 To get them please follow steps below.  
 ### How to get npsso  
 Fully described here - https://tusticles.com/psn-php/first_login.html
+<details>
+<summary>
+If link above doesn't work
+</summary>
+Code for retrieving npsso:  
+```javascript
+(function(open) {
+    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+
+        this.addEventListener("readystatechange", function() {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                let response = JSON.parse(this.responseText);
+
+                if (response && "npsso" in response) {
+                    console.log('found npsso', response.npsso);
+                }
+            }
+        }, false);
+
+        open.call(this, method, url, async, user, pass);
+    };
+
+    window.onbeforeunload = function(){
+        return 'Are you sure you want to leave?';
+    };
+
+})(XMLHttpRequest.prototype.open);
+```
+</details>
+
 ### How to get client_id and client_secret
 - Go to https://account.sonyentertainmentnetwork.com/ and log in with your own credentials
 - Open Chrome Dev Tools, go to Network tab and find `token` request, url - https://auth.api.sonyentertainmentnetwork.com/2.0/oauth/token  
