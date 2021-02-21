@@ -18,7 +18,8 @@ Fully described here - https://tusticles.com/psn-php/first_login.html
 <summary>
 If link above doesn't work
 </summary>
-Code for retrieving npsso:  
+
+Code for retrieving npsso:   
 ```javascript
 (function(open) {
     XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
