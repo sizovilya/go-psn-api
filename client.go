@@ -15,6 +15,7 @@ type psn struct {
 	accessToken  string
 }
 
+// Creates new psn api
 func NewPsnApi(lang, region, npsso, clientId, clientSecret string) (*psn, error) {
 	if !isContain(languages, lang) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported lang %s", lang)
@@ -41,6 +42,7 @@ func NewPsnApi(lang, region, npsso, clientId, clientSecret string) (*psn, error)
 	}, nil
 }
 
+// Setter for lang
 func (p *psn) SetLang(lang string) error {
 	if !isContain(languages, lang) {
 		return fmt.Errorf("unsupported lang %s", lang)
@@ -49,10 +51,12 @@ func (p *psn) SetLang(lang string) error {
 	return nil
 }
 
+// Getter for lang
 func (p *psn) GetLang() string {
 	return p.lang
 }
 
+// Setter for region
 func (p *psn) SetRegion(region string) error {
 	if !isContain(regions, region) {
 		return fmt.Errorf("cunsupported region %s", region)
@@ -61,10 +65,12 @@ func (p *psn) SetRegion(region string) error {
 	return nil
 }
 
+// Getter for region
 func (p *psn) GetRegion() string {
 	return p.region
 }
 
+// Setter for npsso
 func (p *psn) SetNPSSO(npsso string) error {
 	if npsso == "" {
 		return fmt.Errorf("npsso is empty")
@@ -73,10 +79,12 @@ func (p *psn) SetNPSSO(npsso string) error {
 	return nil
 }
 
+// Getter for npsso
 func (p *psn) GetNPSSO() string {
 	return p.npsso
 }
 
+// Setter for client id
 func (p *psn) SetClientId(clientId string) error {
 	if clientId == "" {
 		return fmt.Errorf("clientId is empty")
@@ -85,10 +93,12 @@ func (p *psn) SetClientId(clientId string) error {
 	return nil
 }
 
+// Getter for client id
 func (p *psn) GetClientId() string {
 	return p.clientId
 }
 
+// Setter for secret
 func (p *psn) SetClientSecret(clientSecret string) error {
 	if clientSecret == "" {
 		return fmt.Errorf("clientSecret is empty")
@@ -97,10 +107,12 @@ func (p *psn) SetClientSecret(clientSecret string) error {
 	return nil
 }
 
+// Getter for secret
 func (p *psn) GetClientSecret() string {
 	return p.clientSecret
 }
 
+// Method makes auth request to Sony's server and retrieves access token
 func (p *psn) Auth() error {
 	tokens, err := p.authRequest()
 	if err != nil {

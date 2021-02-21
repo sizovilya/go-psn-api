@@ -56,6 +56,7 @@ type ProfileResponse struct {
 	Profile Profile `json:"profile"`
 }
 
+// Method retrieves user profile info by PSN id
 func (p *psn) GetProfileRequest(name string) (profile *Profile, err error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
