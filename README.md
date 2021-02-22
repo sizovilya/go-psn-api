@@ -19,7 +19,7 @@ Fully described here - https://tusticles.com/psn-php/first_login.html
 If link above doesn't work
 </summary>
 
-Code for retrieving npsso:   
+Copy this js code:   
 ```javascript
 (function(open) {
     XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
@@ -43,6 +43,9 @@ Code for retrieving npsso:
 
 })(XMLHttpRequest.prototype.open);
 ```
+ - Navigate to https://account.sonyentertainmentnetwork.com/ in your browser and open your browser’s developer console
+ - Paste the above Javascript into the console and then login.
+ - After the login flow is completed, you should see a new log in the developer console that looks like: found npsso <64 character code>. Copy that 64 character code.
 </details>
 
 ### How to get client_id and client_secret
