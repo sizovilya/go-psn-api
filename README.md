@@ -19,6 +19,7 @@ Fully described here - https://tusticles.com/psn-php/first_login.html
 If link above doesn't work
 </summary>
 
+
 Copy this js code:   
 ```javascript
 (function(open) {
