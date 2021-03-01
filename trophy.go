@@ -2,7 +2,7 @@ package psn
 
 import "fmt"
 
-// const trophyTitleApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles?"
+//  const trophyTitleApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles?"
 
 // Method retrieves user's trophy titles
 func (p *psn) GetTrophyTitles(name string) (profile *Profile, err error) {
