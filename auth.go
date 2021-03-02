@@ -30,7 +30,7 @@ func (p *psn) AuthWithNPSSO() error {
 }
 
 // Method makes auth request to Sony's server and retrieves tokens
-//TODO: write logic
+// TODO: write logic
 func (p *psn) AuthWithRefreshToken() error {
 	tokens, err := p.authRequest()
 	if err != nil {

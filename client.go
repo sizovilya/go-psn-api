@@ -100,7 +100,7 @@ func (p *psn) SetRefreshToken(refreshToken string) error {
 	return nil
 }
 
-// Getter for refresh token
+//  Getter for refresh token
 func (p *psn) GetRefreshToken() (string, int32) {
 	return p.refreshToken, p.refreshExpired
 }
