@@ -20,27 +20,51 @@ type tokens struct {
 }
 
 // Method makes auth request to Sony's server and retrieves tokens
-func (p *psn) AuthWithNPSSO() error {
-	tokens, err := p.authRequest()
+func (p *psn) AuthWithNPSSO(npsso string) error {
+	if npsso == "" {
+		return fmt.Errorf("npsso is empty")
+	}
+	tokens, err := p.authRequest(npsso)
 	if err != nil {
 		return fmt.Errorf("can't do auth request: %w", err)
 	}
 	p.accessToken = tokens.AccessToken
+	p.refreshToken = tokens.RefreshToken
+	p.accessExpired = tokens.AccessExpires
+	p.refreshExpired = tokens.RefreshExpires
 	return nil
 }
 
 // Method makes auth request to Sony's server and retrieves tokens
-// TODO: write logic
-func (p *psn) AuthWithRefreshToken() error {
-	tokens, err := p.authRequest()
+func (p *psn) AuthWithRefreshToken(refreshToken string) error {
+	if refreshToken == "" {
+		return fmt.Errorf("refresh token is empty")
+	}
+	postValues := url.Values{}
+	postValues.Add("scope", "psn:mobile.v1 psn:clientapp")
+	postValues.Add("refresh_token", refreshToken)
+	postValues.Add("grant_type", "refresh_token")
+	postValues.Add("token_format", "jwt")
+
+	var postHeaders = headers{}
+	postHeaders["Content-Type"] = "application/x-www-form-urlencoded"
+	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
+	var tokens *tokens
+	err := p.post(postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
 	if err != nil {
-		return fmt.Errorf("can't do auth request: %w", err)
+		return fmt.Errorf("can't create new POST request %w: ", err)
+	}
+	if tokens == nil {
+		return fmt.Errorf("wrong response, tokens are nil")
 	}
 	p.accessToken = tokens.AccessToken
+	p.refreshToken = tokens.RefreshToken
+	p.accessExpired = tokens.AccessExpires
+	p.refreshExpired = tokens.RefreshExpires
 	return nil
 }
 
-func (p *psn) authRequest() (tokens *tokens, err error) {
+func (p *psn) authRequest(npsso string) (*tokens, error) {
 	getValues := url.Values{}
 	getValues.Add("access_type", "offline")
 	getValues.Add("app_context", "inapp_ios")
@@ -65,52 +89,57 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 	getValues.Add("ui", "pr")
 
 	var getHeaders = headers{}
-	getHeaders["Cookie"] = fmt.Sprintf("npsso=%s", p.npsso)
+	getHeaders["Cookie"] = fmt.Sprintf("npsso=%s", npsso)
 
 	uri, _ := url.Parse(fmt.Sprintf("%sauthz/v3/oauth/authorize", authUrl))
 	uri.RawQuery = getValues.Encode()
 
-	var i int
 	var code = ""
 	nextUrl := uri.String()
-	for i < 2 {
-		req, err := http.NewRequest(
-			"GET",
-			nextUrl,
-			nil,
-		)
+
+	// not a best way to check redirect, refactor somewhere
+	req, err := http.NewRequest(
+		"GET",
+		nextUrl,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("can't create new GET request: %w ", err)
+	}
+
+	for k, v := range getHeaders {
+		req.Header.Add(k, v)
+	}
+
+	// create new httpclient with ability to check redirects
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("can't execute GET request: %w ", err)
+	}
+
+	defer func() {
+		err = resp.Body.Close()
+	}()
+
+	if resp.StatusCode == http.StatusFound {
+		nextUrl = resp.Header.Get("Location")
+		parsed, err := url.ParseQuery(nextUrl)
 		if err != nil {
-			return nil, fmt.Errorf("can't create new GET request %w: ", err)
+			return nil, fmt.Errorf("can't parse query: %w ", err)
 		}
-
-		for k, v := range getHeaders {
-			req.Header.Add(k, v)
+		if len(parsed["error_description"]) > 0 {
+			return nil, fmt.Errorf("can't authorize, error from psn: %s, check npsso ", parsed["error_description"][0])
 		}
-
-		// create new httpclient with ability to check redirects
-		client := &http.Client{
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("can't execute GET request %w: ", err)
-		}
-
-		defer func() {
-			err = resp.Body.Close()
-		}()
-
-		if resp.StatusCode == http.StatusFound {
-			nextUrl = resp.Header.Get("Location")
-			parsed, _ := url.ParseQuery(nextUrl)
-			if len(parsed["com.playstation.PlayStationApp://redirect/?code"]) > 0 {
-				code = parsed["com.playstation.PlayStationApp://redirect/?code"][0]
-				break
-			}
-			i += 1
+		if len(parsed["com.playstation.PlayStationApp://redirect/?code"]) > 0 {
+			code = parsed["com.playstation.PlayStationApp://redirect/?code"][0]
+		} else {
+			return nil, fmt.Errorf("can't get code")
 		}
 	}
 
@@ -140,10 +169,11 @@ func (p *psn) authRequest() (tokens *tokens, err error) {
 	postHeaders["Cookie"] = fmt.Sprintf("npsso=%s", p.npsso)
 	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 
+	var tokens tokens
 	err = p.post(postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new POST request %w: ", err)
+		return nil, fmt.Errorf("can't create new POST request: %w ", err)
 	}
 
-	return tokens, nil
+	return &tokens, nil
 }

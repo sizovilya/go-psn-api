@@ -17,21 +17,17 @@ type psn struct {
 }
 
 // Creates new psn api
-func NewPsnApi(lang, region, npsso string) (*psn, error) {
+func NewPsnApi(lang, region string) (*psn, error) {
 	if !isContain(languages, lang) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported lang %s", lang)
 	}
 	if !isContain(regions, region) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported region %s", region)
 	}
-	if npsso == "" {
-		return nil, fmt.Errorf("can't create psnapi: npsso is empty")
-	}
 	return &psn{
 		http:   &http.Client{},
 		lang:   lang,
 		region: region,
-		npsso:  npsso,
 	}, nil
 }
 
