@@ -18,7 +18,7 @@ func (p *psn) GetTrophyTitles(name string) (profile *Profile, err error) {
 			"https://%s%sfields=@default,trophyTitleSmallIconUrl&platform=PS3,PS4,PSVITA&limit=12&offset=0&comparedUser=%s&npLanguage=ru",
 			p.region,
 			p.lang,
-			// trophyTitleApi,
+			//trophyTitleApi,
 			name,
 		),
 		h,
