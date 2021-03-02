@@ -6,19 +6,14 @@
 # go-psn-api(WIP)
 A Playstation Network API wrapper written in Go.
 ## Read first
-Corresponding to my research how PSN works you need several things to interact with Sony servers:  
-- npsso - some secret, you need it to obtain access token
-- client_id - identifier of client
-- client_secret - secret  
-
-To get them please follow steps below.  
+Corresponding to my research how PSN works you need npsso to interact with Sony servers.
+Instructions how to get it below.  
 ### How to get npsso  
 Fully described here - https://tusticles.com/psn-php/first_login.html
 <details>
 <summary>
 If link above doesn't work
 </summary>
-
 
 Copy this js code:   
 ```javascript
@@ -53,43 +48,62 @@ Copy this js code:
 - Go to https://account.sonyentertainmentnetwork.com/ and log in with your own credentials
 - Open Chrome Dev Tools, go to Network tab and find `token` request, url - https://auth.api.sonyentertainmentnetwork.com/2.0/oauth/token  
   <img src="assets/screen.png" width="450">
+
+### Functions at this moment 
+- You can get user profile info
+- You can get trophy titles
+
+
 ### Example    
 ```go
 package main
 
 import (
-"fmt"
-"github.com/sizovilya/go-psn-api"
+  "fmt"
+  "github.com/sizovilya/go-psn-api"
 )
 
 func main() {
   lang := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go
   region := "ru" // full list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go
   npsso := "your npsso"
-  clientId := "your client_id"
-  clientSecret := "your secret"
   psnApi, err := psn.NewPsnApi(
     lang,
     region,
-    npsso,
-    clientId,
-    clientSecret,
   )
   if err != nil {
     panic(err)
   }
-  // Firstly, you need to authenticate yourself
-  // This request will get access_token from Sony's server
-  err = psnApi.Auth()
+
+  // This request will get access token and refresh token from Sony's servers
+  err = psnApi.AuthWithNPSSO(npsso)
   if err != nil {
     panic(err)
   }
+
+  // If you've obtained refresh token you may use it for next time
+  // Next logins should be like this:
+  // refreshToken, _ := psnApi.GetRefreshToken() // store refresh token somewhere for future logins by psnApi.AuthWithRefreshToken method
+  err = psnApi.AuthWithRefreshToken("your token") // get new access token
+  if err != nil {
+    panic(err)
+  }
+
   // How to get user's profile info
-  // Response is a Profile struct, see it here https://github.com/sizovilya/go-psn-api/blob/main/profile.go 
   profile, err := psnApi.GetProfileRequest("geeek_52rus")
   if err != nil {
     panic(err)
   }
   fmt.Print(profile)
+
+  // How to get trophy titles
+  trophyTitles, err := psnApi.GetTrophyTitles("geeek_52rus", 50, 0)
+  if err != nil {
+    panic(err)
+  }
+  fmt.Print(trophyTitles)
 }
+
 ```
+
+<p align="center"> <img src="assets/gopher-dance.gif"> </p>

@@ -6,39 +6,28 @@ import (
 )
 
 type psn struct {
-	http         *http.Client
-	lang         string
-	region       string
-	npsso        string
-	clientId     string
-	clientSecret string
-	accessToken  string
+	http           *http.Client
+	lang           string
+	region         string
+	npsso          string
+	accessToken    string
+	refreshToken   string
+	accessExpired  int32
+	refreshExpired int32
 }
 
 // Creates new psn api
-func NewPsnApi(lang, region, npsso, clientId, clientSecret string) (*psn, error) {
+func NewPsnApi(lang, region string) (*psn, error) {
 	if !isContain(languages, lang) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported lang %s", lang)
 	}
 	if !isContain(regions, region) {
 		return nil, fmt.Errorf("can't create psnapi: unsupported region %s", region)
 	}
-	if npsso == "" {
-		return nil, fmt.Errorf("can't create psnapi: npsso is empty")
-	}
-	if clientId == "" {
-		return nil, fmt.Errorf("can't create psnapi: clientId is empty")
-	}
-	if clientSecret == "" {
-		return nil, fmt.Errorf("can't create psnapi: clientSecret is empty")
-	}
 	return &psn{
-		http:         &http.Client{},
-		lang:         lang,
-		region:       region,
-		npsso:        npsso,
-		clientId:     clientId,
-		clientSecret: clientSecret,
+		http:   &http.Client{},
+		lang:   lang,
+		region: region,
 	}, nil
 }
 
@@ -84,40 +73,30 @@ func (p *psn) GetNPSSO() string {
 	return p.npsso
 }
 
-// Setter for client id
-func (p *psn) SetClientId(clientId string) error {
-	if clientId == "" {
-		return fmt.Errorf("clientId is empty")
+// Setter for access token
+func (p *psn) SetAccessToken(accessToken string) error {
+	if accessToken == "" {
+		return fmt.Errorf("access token is empty")
 	}
-	p.clientId = clientId
+	p.accessToken = accessToken
 	return nil
 }
 
-// Getter for client id
-func (p *psn) GetClientId() string {
-	return p.clientId
+// Getter for access token
+func (p *psn) GetAccessToken() (string, int32) {
+	return p.accessToken, p.accessExpired
 }
 
-// Setter for secret
-func (p *psn) SetClientSecret(clientSecret string) error {
-	if clientSecret == "" {
-		return fmt.Errorf("clientSecret is empty")
+// Getter for refresh token
+func (p *psn) SetRefreshToken(refreshToken string) error {
+	if refreshToken == "" {
+		return fmt.Errorf("refresh token is empty")
 	}
-	p.clientSecret = clientSecret
+	p.refreshToken = refreshToken
 	return nil
 }
 
-// Getter for secret
-func (p *psn) GetClientSecret() string {
-	return p.clientSecret
-}
-
-// Method makes auth request to Sony's server and retrieves access token
-func (p *psn) Auth() error {
-	tokens, err := p.authRequest()
-	if err != nil {
-		return fmt.Errorf("can't do auth request: %w", err)
-	}
-	p.accessToken = tokens.AccessToken
-	return nil
+//  Getter for refresh token
+func (p *psn) GetRefreshToken() (string, int32) {
+	return p.refreshToken, p.refreshExpired
 }
