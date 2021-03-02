@@ -106,4 +106,4 @@ func main() {
 
 ```
 
-<p align="center"> ![gopher-dance](assets/gopher-dance.gif) </p>
+<p align="center"> <img src="assets/gopher-dance.gif"> </p>
