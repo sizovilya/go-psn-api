@@ -1,6 +1,7 @@
 package psn
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -52,15 +53,16 @@ type TrophyTitleResponse struct {
 }
 
 // Method retrieves user's trophy titles
-func (p *psn) GetTrophyTitles(username string, limit, offset int32) (profile *TrophyTitleResponse, err error) {
+func (p *psn) GetTrophyTitles(ctx context.Context, username string, limit, offset int32) (profile *TrophyTitleResponse, err error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
-	h["accept-language"] = "ru-RU"
+	//h["accept-language"] = "en-US"
 	h["Accept"] = "*/*"
 	h["Accept-Encoding"] = "gzip, deflate, br"
 
 	trophyTitleResponse := TrophyTitleResponse{}
 	err = p.get(
+		ctx,
 		fmt.Sprintf(
 			"https://%s%sfields=@default,trophyTitleSmallIconUrl&platform=PS3,PS4,PSVITA&limit=%d&offset=%d&comparedUser=%s&npLanguage=%s",
 			p.region,

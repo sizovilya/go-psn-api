@@ -8,4 +8,3 @@ func isContain(arr []string, value string) bool {
 	}
 	return false
 }
-

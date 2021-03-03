@@ -1,11 +1,11 @@
 package psn
 
 import (
+	"context"
 	"fmt"
 )
 
-const usersApi     = "-prof.np.community.playstation.net/userProfile/v1/users/"
-
+const usersApi = "-prof.np.community.playstation.net/userProfile/v1/users/"
 
 type AvatarUrls struct {
 	Size      string `json:"size"`
@@ -57,12 +57,13 @@ type ProfileResponse struct {
 }
 
 // Method retrieves user profile info by PSN id
-func (p *psn) GetProfileRequest(name string) (profile *Profile, err error) {
+func (p *psn) GetProfileRequest(ctx context.Context, name string) (profile *Profile, err error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
 
 	userResponse := &ProfileResponse{}
 	err = p.get(
+		ctx,
 		fmt.Sprintf(
 			"https://%s%s%s/profile2?fields=onlineId,aboutMe,consoleAvailability,languagesUsed,avatarUrls,personalDetail,personalDetail(@default,profilePictureUrls),primaryOnlineStatus,trophySummary(level,progress,earnedTrophies),plus,isOfficiallyVerified,friendRelation,personalDetailSharing,presences(@default,platform),npId,blocking,following,currentOnlineId,displayableOldOnlineId,mutualFriendsCount,followerCount&profilePictureSizes=s,m,l&avatarSizes=s,m,l&languagesUsedLanguageSet=set4",
 			p.region,
@@ -75,5 +76,5 @@ func (p *psn) GetProfileRequest(name string) (profile *Profile, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't do GET request: %w", err)
 	}
-	return &userResponse.Profile,nil
+	return &userResponse.Profile, nil
 }

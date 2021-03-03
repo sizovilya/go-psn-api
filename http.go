@@ -1,6 +1,7 @@
 package psn
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,8 +11,9 @@ import (
 
 type headers map[string]string
 
-func (p *psn) post(formData url.Values, url string, headers headers, value interface{}) error {
-	req, err := http.NewRequest(
+func (p *psn) post(ctx context.Context, formData url.Values, url string, headers headers, value interface{}) error {
+	req, err := http.NewRequestWithContext(
+		ctx,
 		"POST",
 		url,
 		strings.NewReader(formData.Encode()),
@@ -45,8 +47,9 @@ func (p *psn) post(formData url.Values, url string, headers headers, value inter
 	return nil
 }
 
-func (p *psn) get(url string, headers headers, value interface{}) error {
-	req, err := http.NewRequest(
+func (p *psn) get(ctx context.Context, url string, headers headers, value interface{}) error {
+	req, err := http.NewRequestWithContext(
+		ctx,
 		"GET",
 		url,
 		nil,
