@@ -60,8 +60,8 @@ import (
 
 func main() {
   ctx := context.Background()
-  lang := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go, some languages are wrong and unsupported now, feel free to investigate for your own
-  region := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go, some regions are wrong and unsupported now, feel free to investigate for your own
+  lang := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go, some languages in list are wrong and unsupported now, feel free to investigate for your own
+  region := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go, some regions in list are wrong and unsupported now, feel free to investigate for your own
   npsso := "your npsso"
   psnApi, err := psn.NewPsnApi(
     lang,
