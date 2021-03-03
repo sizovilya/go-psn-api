@@ -1,11 +1,10 @@
 package psn
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
-	// "encoding/json"
-	// "bytes"
 )
 
 const (
@@ -20,11 +19,11 @@ type tokens struct {
 }
 
 // Method makes auth request to Sony's server and retrieves tokens
-func (p *psn) AuthWithNPSSO(npsso string) error {
+func (p *psn) AuthWithNPSSO(ctx context.Context, npsso string) error {
 	if npsso == "" {
 		return fmt.Errorf("npsso is empty")
 	}
-	tokens, err := p.authRequest(npsso)
+	tokens, err := p.authRequest(ctx, npsso)
 	if err != nil {
 		return fmt.Errorf("can't do auth request: %w", err)
 	}
@@ -36,7 +35,7 @@ func (p *psn) AuthWithNPSSO(npsso string) error {
 }
 
 // Method makes auth request to Sony's server and retrieves tokens
-func (p *psn) AuthWithRefreshToken(refreshToken string) error {
+func (p *psn) AuthWithRefreshToken(ctx context.Context, refreshToken string) error {
 	if refreshToken == "" {
 		return fmt.Errorf("refresh token is empty")
 	}
@@ -50,7 +49,7 @@ func (p *psn) AuthWithRefreshToken(refreshToken string) error {
 	postHeaders["Content-Type"] = "application/x-www-form-urlencoded"
 	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 	var tokens *tokens
-	err := p.post(postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
+	err := p.post(ctx, postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
 	if err != nil {
 		return fmt.Errorf("can't create new POST request %w: ", err)
 	}
@@ -64,7 +63,7 @@ func (p *psn) AuthWithRefreshToken(refreshToken string) error {
 	return nil
 }
 
-func (p *psn) authRequest(npsso string) (*tokens, error) {
+func (p *psn) authRequest(ctx context.Context, npsso string) (*tokens, error) {
 	getValues := url.Values{}
 	getValues.Add("access_type", "offline")
 	getValues.Add("app_context", "inapp_ios")
@@ -98,7 +97,8 @@ func (p *psn) authRequest(npsso string) (*tokens, error) {
 	nextUrl := uri.String()
 
 	// not a best way to check redirect, refactor somewhere
-	req, err := http.NewRequest(
+	req, err := http.NewRequestWithContext(
+		ctx,
 		"GET",
 		nextUrl,
 		nil,
@@ -170,7 +170,7 @@ func (p *psn) authRequest(npsso string) (*tokens, error) {
 	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 
 	var tokens tokens
-	err = p.post(postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
+	err = p.post(ctx, postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
 	if err != nil {
 		return nil, fmt.Errorf("can't create new POST request: %w ", err)
 	}

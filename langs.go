@@ -4,6 +4,7 @@ var languages = []string{
 	"ja",
 	"en",
 	"en-GB",
+	"en-US",
 	"fr",
 	"es",
 	"es-MX",

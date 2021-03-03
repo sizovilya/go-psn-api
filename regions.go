@@ -61,4 +61,5 @@ var regions = []string{
 	"th",
 	"jp",
 	"kr",
+	"en-US",
 }
