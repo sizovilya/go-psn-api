@@ -98,6 +98,14 @@ func main() {
     panic(err)
   }
   fmt.Print(trophyTitles)
+
+  // How to get trophy group by trophy title
+  trophyTitleId := trophyTitles.TrophyTitles[0].NpCommunicationID // get first of them
+  trophyGroups, err := psnApi.GetTrophyGroups(ctx, trophyTitleId, "geeek_52rus")
+  if err != nil {
+    panic(err)
+  }
+  fmt.Println(trophyGroups)
 }
 
 ```
