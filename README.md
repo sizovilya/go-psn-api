@@ -47,7 +47,7 @@ Copy this js code:
 ### Functions at this moment 
 - You can get user profile info
 - You can get trophy titles
-
+- You can get trophy groups
 
 ### Example    
 ```go
