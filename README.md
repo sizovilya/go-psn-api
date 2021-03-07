@@ -111,7 +111,7 @@ func main() {
   // How to get trophies in certain trophy title and trophy group
   trophies, err := psnApi.GetTrophies(
   	ctx,
-	"NPWR13348_00", // The Last Of Us 2
+	"NPWR13348_00", // The Last of Us 2
 	"001",         // trophy group with id = 001
 	"geeek_52rus",
   )
