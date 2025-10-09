@@ -20,7 +20,7 @@ func (c *Client) post(ctx context.Context, url string, formData url.Values, head
 	return c.do(ctx, "POST", url, strings.NewReader(formData.Encode()), headers, value)
 }
 
-func (c *Client) do(ctx context.Context, method, url string, body io.Reader, headers headers, value interface{}) error {
+func (c *Client) do(ctx context.Context, method, url string, body io.Reader, headers headers, value interface{}) (err error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -34,7 +34,11 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader, hea
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("failed to close response body: %w", cerr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)

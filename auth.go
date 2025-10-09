@@ -71,7 +71,7 @@ func (c *Client) AuthWithRefreshToken(ctx context.Context, refreshToken string) 
 	return nil
 }
 
-func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (string, error) {
+func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (_ string, err error) {
 	getValues := url.Values{}
 	getValues.Add("access_type", "offline")
 	getValues.Add("client_id", clientID)
@@ -114,7 +114,11 @@ func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (string
 	if err != nil {
 		return "", fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("failed to close response body: %w", cerr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("expected redirect, got status %d", resp.StatusCode)
