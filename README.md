@@ -8,41 +8,40 @@ A Playstation Network API wrapper written in Go.
 ## Read first
 Corresponding to my research how PSN works you need npsso to interact with Sony servers.
 Instructions how to get it below.  
-### How to get npsso  
-Fully described here - https://tusticles.com/psn-php/first_login.html
-<details>
-<summary>
-If link above doesn't work
-</summary>
+### How to get npsso
+To interact with the PlayStation Network API, you need a special token called `npsso`. Here's how to get it:
 
-Copy this js code:   
-```javascript
-(function(open) {
-    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+1. **Open your browser's developer console.**
+   - In most browsers, you can do this by right-clicking on the page and selecting "Inspect" or by pressing `F12`.
+2. **Navigate to the PlayStation Network login page.**
+   - Go to: [https://www.playstation.com/en-us/playstation-network/](https://www.playstation.com/en-us/playstation-network/)
+3. **Paste the following Javascript code into the console and press Enter:**
+   ```javascript
+   (function(open) {
+       XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
 
-        this.addEventListener("readystatechange", function() {
-            if (this.readyState == XMLHttpRequest.DONE) {
-                let response = JSON.parse(this.responseText);
+           this.addEventListener("readystatechange", function() {
+               if (this.readyState == XMLHttpRequest.DONE) {
+                   let response = JSON.parse(this.responseText);
 
-                if (response && "npsso" in response) {
-                    console.log('found npsso', response.npsso);
-                }
-            }
-        }, false);
+                   if (response && "npsso" in response) {
+                       console.log('found npsso', response.npsso);
+                   }
+               }
+           }, false);
 
-        open.call(this, method, url, async, user, pass);
-    };
+           open.call(this, method, url, async, user, pass);
+       };
 
-    window.onbeforeunload = function(){
-        return 'Are you sure you want to leave?';
-    };
+       window.onbeforeunload = function(){
+           return 'Are you sure you want to leave?';
+       };
 
-})(XMLHttpRequest.prototype.open);
-```
- - Navigate to https://account.sonyentertainmentnetwork.com/ in your browser and open your browser’s developer console
- - Paste the above Javascript into the console and then login.
- - After the login flow is completed, you should see a new log in the developer console that looks like: found npsso <64 character code>. Copy that 64 character code.
-</details>
+   })(XMLHttpRequest.prototype.open);
+   ```
+4. **Log in to your PlayStation Network account.**
+   - After you successfully log in, you will see a new message in the developer console that looks like this: `found npsso <64 character code>`.
+5. **Copy the 64-character code.** This is your `npsso` token.
 
 ### Functionality
 - You can get user profile info
