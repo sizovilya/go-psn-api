@@ -55,72 +55,68 @@ Copy this js code:
 package main
 
 import (
-  "fmt"
-  "github.com/sizovilya/go-psn-api"
+	"context"
+	"fmt"
+	"github.com/sizovilya/go-psn-api"
 )
 
 func main() {
-  ctx := context.Background()
-  lang := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/langs.go, some languages in list are wrong and unsupported now, feel free to investigate for your own and add it to list
-  region := "ru" // known list here https://github.com/sizovilya/go-psn-api/blob/main/regions.go, some regions in list are wrong and unsupported now, feel free to investigate for your own and add it to list
-  npsso := "<your npsso>"
-  psnApi, err := psn.NewPsnApi(
-    lang,
-    region,
-  )
-  if err != nil {
-    panic(err)
-  }
+	ctx := context.Background()
+	opts := &psn.Options{
+		Lang:   "ru", // See https://github.com/sizovilya/go-psn-api/blob/main/langs.go
+		Region: "ru", // See https://github.com/sizovilya/go-psn-api/blob/main/regions.go
+		Npsso:  "<your_npsso_code>",
+	}
 
-  // This request will get access and refresh tokens from Sony's servers
-  err = psnApi.AuthWithNPSSO(ctx, npsso)
-  if err != nil {
-    panic(err)
-  }
+	client, err := psn.NewClient(opts)
+	if err != nil {
+		panic(err)
+	}
 
-  // If you obtain refresh token you may use it for next logins.
-  // Next logins should be like this:
-  // refreshToken, _ := psnApi.GetRefreshToken() // store refresh token somewhere for future logins by psnApi.AuthWithRefreshToken method
-  err = psnApi.AuthWithRefreshToken(ctx, "<your token>") // will get new access token, feel free to manage tokens by yourself
-  if err != nil {
-    panic(err)
-  }
+	// Authenticate to get access and refresh tokens.
+	err = client.AuthWithNPSSO(ctx, opts.Npsso)
+	if err != nil {
+		panic(err)
+	}
 
-  // How to get user's profile info
-  profile, err := psnApi.GetProfileRequest(ctx, "geeek_52rus")
-  if err != nil {
-    panic(err)
-  }
-  fmt.Print(profile)
+	// You can also use a refresh token for subsequent authentications.
+	// refreshToken, _ := client.RefreshToken()
+	// err = client.AuthWithRefreshToken(ctx, refreshToken)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-  // How to get trophy titles
-  trophyTitles, err := psnApi.GetTrophyTitles(ctx, "geeek_52rus", 50, 0)
-  if err != nil {
-    panic(err)
-  }
-  fmt.Print(trophyTitles)
+	// Get user profile information.
+	profile, err := client.GetProfile(ctx, "geeek_52rus")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Profile: %+v\n", profile)
 
-  // How to get trophy group by trophy title
-  trophyTitleId := trophyTitles.TrophyTitles[0].NpCommunicationID // get first of them
-  trophyGroups, err := psnApi.GetTrophyGroups(ctx, trophyTitleId, "geeek_52rus")
-  if err != nil {
-    panic(err)
-  }
-  fmt.Println(trophyGroups)
+	// Get trophy titles.
+	trophyTitles, err := client.GetTrophyTitles(ctx, "geeek_52rus", 50, 0)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Trophy Titles: %+v\n", trophyTitles)
 
-  // How to get trophies in certain trophy title and trophy group
-  trophies, err := psnApi.GetTrophies(
-  	ctx,
-	"NPWR13348_00", // The Last of Us 2
-	"001",         // trophy group with id = 001
-	"geeek_52rus",
-  )
-  if err != nil {
-      panic(err)
-  }
-  fmt.Println(trophies)
+	// Get trophy groups for a specific title.
+	if len(trophyTitles.TrophyTitles) > 0 {
+		trophyTitleID := trophyTitles.TrophyTitles[0].NpCommunicationID
+		trophyGroups, err := client.GetTrophyGroups(ctx, trophyTitleID, "geeek_52rus")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Trophy Groups: %+v\n", trophyGroups)
+	}
+
+	// Get trophies for a specific title and group.
+	trophies, err := client.GetTrophies(ctx, "NPWR13348_00", "001", "geeek_52rus")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Trophies: %+v\n", trophies)
 }
-
 ```
 This project highly inspired by https://github.com/Tustin/psn-php. Some useful things like auth headers and params found in `Tustin/psn-php`. 
 <p align="center"> <img src="assets/gopher-dance.gif"> </p>

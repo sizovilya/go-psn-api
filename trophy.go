@@ -25,30 +25,30 @@ type TrophiesResponse struct {
 	} `json:"trophies"`
 }
 
-// Method retrieves user's trophies
-func (p *psn) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, username string) (*TrophiesResponse, error) {
+// GetTrophies retrieves a user's trophies for a specific title and group.
+func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, username string) (*TrophiesResponse, error) {
 	var h = headers{}
-	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
+	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
 	h["Accept"] = "*/*"
 	h["Accept-Encoding"] = "gzip, deflate, br"
 
-	trophiesResponse := TrophiesResponse{}
-	err := p.get(
+	var trophiesResponse TrophiesResponse
+	err := c.get(
 		ctx,
 		fmt.Sprintf(
 			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s",
-			p.region,
+			c.region,
 			trophiesApi,
 			trophyTitleId,
 			trophyGroupId,
 			username,
-			p.lang,
+			c.lang,
 		),
 		h,
 		&trophiesResponse,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("can't do GET request: %w", err)
+		return nil, fmt.Errorf("failed to get trophies: %w", err)
 	}
 	return &trophiesResponse, nil
 }

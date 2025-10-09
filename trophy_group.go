@@ -45,29 +45,29 @@ type TrophyGroupResponse struct {
 	} `json:"trophyGroups"`
 }
 
-// Method retrieves user's trophy groups
-func (p *psn) GetTrophyGroups(ctx context.Context, trophyTitleId, username string) (*TrophyGroupResponse, error) {
+// GetTrophyGroups retrieves a user's trophy groups for a specific title.
+func (c *Client) GetTrophyGroups(ctx context.Context, trophyTitleId, username string) (*TrophyGroupResponse, error) {
 	var h = headers{}
-	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
+	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
 	h["Accept"] = "*/*"
 	h["Accept-Encoding"] = "gzip, deflate, br"
 
-	response := TrophyGroupResponse{}
-	err := p.get(
+	var response TrophyGroupResponse
+	err := c.get(
 		ctx,
 		fmt.Sprintf(
 			"https://%s%s%s/trophyGroups?fields=@default,trophyGroupSmallIconUrl&comparedUser=%s&npLanguage=%s",
-			p.region,
+			c.region,
 			trophyGroupApi,
 			trophyTitleId,
 			username,
-			p.lang,
+			c.lang,
 		),
 		h,
 		&response,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("can't do GET request: %w", err)
+		return nil, fmt.Errorf("failed to get trophy groups: %w", err)
 	}
 	return &response, nil
 }

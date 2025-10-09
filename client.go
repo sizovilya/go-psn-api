@@ -5,98 +5,62 @@ import (
 	"net/http"
 )
 
-type psn struct {
-	http           *http.Client
-	lang           string
-	region         string
-	npsso          string
-	accessToken    string
-	refreshToken   string
-	accessExpired  int32
-	refreshExpired int32
+// Client represents the PSN API client.
+type Client struct {
+	http         *http.Client
+	lang         string
+	region       string
+	npsso        string
+	accessToken  string
+	refreshToken string
+	accessExp    int32
+	refreshExp   int32
 }
 
-// Creates new psn api
-func NewPsnApi(lang, region string) (*psn, error) {
-	if !isContain(languages, lang) {
-		return nil, fmt.Errorf("can't create psnapi: unsupported lang %s", lang)
+// Options holds the configuration for the PSN API client.
+type Options struct {
+	Lang   string
+	Region string
+	Npsso  string
+}
+
+// NewClient creates a new PSN API client.
+func NewClient(opts *Options) (*Client, error) {
+	if !isContain(languages, opts.Lang) {
+		return nil, fmt.Errorf("unsupported language: %s", opts.Lang)
 	}
-	if !isContain(regions, region) {
-		return nil, fmt.Errorf("can't create psnapi: unsupported region %s", region)
+	if !isContain(regions, opts.Region) {
+		return nil, fmt.Errorf("unsupported region: %s", opts.Region)
 	}
-	return &psn{
+	return &Client{
 		http:   &http.Client{},
-		lang:   lang,
-		region: region,
+		lang:   opts.Lang,
+		region: opts.Region,
+		npsso:  opts.Npsso,
 	}, nil
 }
 
-// Setter for lang
-func (p *psn) SetLang(lang string) error {
-	if !isContain(languages, lang) {
-		return fmt.Errorf("unsupported lang %s", lang)
-	}
-	p.lang = lang
-	return nil
+// Lang returns the client's language.
+func (c *Client) Lang() string {
+	return c.lang
 }
 
-// Getter for lang
-func (p *psn) GetLang() string {
-	return p.lang
+// Region returns the client's region.
+func (c *Client) Region() string {
+	return c.region
 }
 
-// Setter for region
-func (p *psn) SetRegion(region string) error {
-	if !isContain(regions, region) {
-		return fmt.Errorf("cunsupported region %s", region)
-	}
-	p.region = region
-	return nil
+// Npsso returns the client's NPSSO code.
+func (c *Client) Npsso() string {
+	return c.npsso
 }
 
-// Getter for region
-func (p *psn) GetRegion() string {
-	return p.region
+// AccessToken returns the access token and its expiration time.
+func (c *Client) AccessToken() (string, int32) {
+	return c.accessToken, c.accessExp
 }
 
-// Setter for npsso
-func (p *psn) SetNPSSO(npsso string) error {
-	if npsso == "" {
-		return fmt.Errorf("npsso is empty")
-	}
-	p.npsso = npsso
-	return nil
-}
-
-// Getter for npsso
-func (p *psn) GetNPSSO() string {
-	return p.npsso
-}
-
-// Setter for access token
-func (p *psn) SetAccessToken(accessToken string) error {
-	if accessToken == "" {
-		return fmt.Errorf("access token is empty")
-	}
-	p.accessToken = accessToken
-	return nil
-}
-
-// Getter for access token
-func (p *psn) GetAccessToken() (string, int32) {
-	return p.accessToken, p.accessExpired
-}
-
-// Getter for refresh token
-func (p *psn) SetRefreshToken(refreshToken string) error {
-	if refreshToken == "" {
-		return fmt.Errorf("refresh token is empty")
-	}
-	p.refreshToken = refreshToken
-	return nil
-}
-
-//  Getter for refresh token
-func (p *psn) GetRefreshToken() (string, int32) {
-	return p.refreshToken, p.refreshExpired
+// RefreshToken returns the refresh token and its expiration time.
+func (c *Client) RefreshToken() (string, int32) {
+	return c.refreshToken, c.refreshExp
 }

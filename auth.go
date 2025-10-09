@@ -8,7 +8,12 @@ import (
 )
 
 const (
-	authUrl = "https://ca.account.sony.com/api/"
+	authHost             = "https://ca.account.sony.com/api/authz/v3/oauth"
+	redirectURI          = "com.playstation.PlayStationApp://redirect"
+	clientID             = "ac8d161a-d966-4728-b0ea-ffec22f69edc"
+	scope                = "psn:mobile.v1 psn:clientapp"
+	tokenFormat          = "jwt"
+	basicAuthCredentials = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 )
 
 type tokens struct {
@@ -18,58 +23,64 @@ type tokens struct {
 	RefreshExpires int32  `json:"refresh_token_expires_in"`
 }
 
-// Method makes auth request to Sony's server and retrieves tokens
-func (p *psn) AuthWithNPSSO(ctx context.Context, npsso string) error {
+// AuthWithNPSSO authenticates the client using an NPSSO code.
+func (c *Client) AuthWithNPSSO(ctx context.Context, npsso string) error {
 	if npsso == "" {
-		return fmt.Errorf("npsso is empty")
+		return fmt.Errorf("npsso code is empty")
 	}
-	tokens, err := p.authRequest(ctx, npsso)
+	c.npsso = npsso
+
+	code, err := c.getAuthorizationCode(ctx, npsso)
 	if err != nil {
-		return fmt.Errorf("can't do auth request: %w", err)
+		return fmt.Errorf("failed to get authorization code: %w", err)
 	}
-	p.accessToken = tokens.AccessToken
-	p.refreshToken = tokens.RefreshToken
-	p.accessExpired = tokens.AccessExpires
-	p.refreshExpired = tokens.RefreshExpires
+
+	tokens, err := c.exchangeCodeForTokens(ctx, code)
+	if err != nil {
+		return fmt.Errorf("failed to exchange authorization code for tokens: %w", err)
+	}
+
+	c.setTokens(tokens)
 	return nil
 }
 
-// Method makes auth request to Sony's server and retrieves tokens
-func (p *psn) AuthWithRefreshToken(ctx context.Context, refreshToken string) error {
+// AuthWithRefreshToken authenticates the client using a refresh token.
+func (c *Client) AuthWithRefreshToken(ctx context.Context, refreshToken string) error {
 	if refreshToken == "" {
 		return fmt.Errorf("refresh token is empty")
 	}
+
 	postValues := url.Values{}
-	postValues.Add("scope", "psn:mobile.v1 psn:clientapp")
+	postValues.Add("scope", scope)
 	postValues.Add("refresh_token", refreshToken)
 	postValues.Add("grant_type", "refresh_token")
-	postValues.Add("token_format", "jwt")
+	postValues.Add("token_format", tokenFormat)
 
-	var postHeaders = headers{}
-	postHeaders["Content-Type"] = "application/x-www-form-urlencoded"
-	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
-	var tokens *tokens
-	err := p.post(ctx, postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
+	headers := headers{
+		"Content-Type":  "application/x-www-form-urlencoded",
+		"Authorization": basicAuthCredentials,
+	}
+
+	var t tokens
+	err := c.post(ctx, fmt.Sprintf("%s/token", authHost), postValues, headers, &t)
 	if err != nil {
-		return fmt.Errorf("can't create new POST request %w: ", err)
+		return fmt.Errorf("failed to refresh tokens: %w", err)
 	}
-	if tokens == nil {
-		return fmt.Errorf("wrong response, tokens are nil")
-	}
-	p.accessToken = tokens.AccessToken
-	p.refreshToken = tokens.RefreshToken
-	p.accessExpired = tokens.AccessExpires
-	p.refreshExpired = tokens.RefreshExpires
+
+	c.setTokens(&t)
 	return nil
 }
 
-func (p *psn) authRequest(ctx context.Context, npsso string) (*tokens, error) {
+func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (string, error) {
 	getValues := url.Values{}
 	getValues.Add("access_type", "offline")
+	getValues.Add("client_id", clientID)
+	getValues.Add("response_type", "code")
+	getValues.Add("scope", scope)
+	getValues.Add("redirect_uri", redirectURI)
 	getValues.Add("app_context", "inapp_ios")
 	getValues.Add("auth_ver", "v3")
 	getValues.Add("cid", "60351282-8C5F-4D5E-9033-E48FEA973E11")
-	getValues.Add("client_id", "ac8d161a-d966-4728-b0ea-ffec22f69edc")
 	getValues.Add("darkmode", "true")
 	getValues.Add("device_base_font_size", "10")
 	getValues.Add("device_profile", "mobile")
@@ -77,41 +88,22 @@ func (p *psn) authRequest(ctx context.Context, npsso string) (*tokens, error) {
 	getValues.Add("elements_visibility", "no_aclink")
 	getValues.Add("extraQueryParams", `{PlatformPrivacyWs1=minimal;}`)
 	getValues.Add("no_captcha", "true")
-	getValues.Add("redirect_uri", "com.playstation.PlayStationApp://redirect")
-	getValues.Add("response_type", "code")
-	getValues.Add("scope", "psn:mobile.v1 psn:clientapp")
 	getValues.Add("service_entity", "urn:service-entity:psn")
 	getValues.Add("service_logo", "ps")
 	getValues.Add("smcid", "psapp:settings-entrance")
 	getValues.Add("support_scheme", "sneiprls")
-	getValues.Add("token_format", "jwt")
+	getValues.Add("token_format", tokenFormat)
 	getValues.Add("ui", "pr")
 
-	var getHeaders = headers{}
-	getHeaders["Cookie"] = fmt.Sprintf("npsso=%s", npsso)
-
-	uri, _ := url.Parse(fmt.Sprintf("%sauthz/v3/oauth/authorize", authUrl))
+	uri, _ := url.Parse(fmt.Sprintf("%s/authorize", authHost))
 	uri.RawQuery = getValues.Encode()
 
-	var code = ""
-	nextUrl := uri.String()
-
-	// not a best way to check redirect, refactor somewhere
-	req, err := http.NewRequestWithContext(
-		ctx,
-		"GET",
-		nextUrl,
-		nil,
-	)
+	req, err := http.NewRequestWithContext(ctx, "GET", uri.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("can't create new GET request: %w ", err)
+		return "", fmt.Errorf("failed to create request: %w", err)
 	}
+	req.Header.Add("Cookie", fmt.Sprintf("npsso=%s", npsso))
 
-	for k, v := range getHeaders {
-		req.Header.Add(k, v)
-	}
-
-	// create new httpclient with ability to check redirects
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -120,60 +112,67 @@ func (p *psn) authRequest(ctx context.Context, npsso string) (*tokens, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("can't execute GET request: %w ", err)
+		return "", fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusFound {
+		return "", fmt.Errorf("expected redirect, got status %d", resp.StatusCode)
 	}
 
-	defer func() {
-		err = resp.Body.Close()
-	}()
-
-	if resp.StatusCode == http.StatusFound {
-		nextUrl = resp.Header.Get("Location")
-		parsed, err := url.ParseQuery(nextUrl)
-		if err != nil {
-			return nil, fmt.Errorf("can't parse query: %w ", err)
-		}
-		if len(parsed["error_description"]) > 0 {
-			return nil, fmt.Errorf("can't authorize, error from psn: %s, check npsso ", parsed["error_description"][0])
-		}
-		if len(parsed["com.playstation.PlayStationApp://redirect/?code"]) > 0 {
-			code = parsed["com.playstation.PlayStationApp://redirect/?code"][0]
-		} else {
-			return nil, fmt.Errorf("can't get code")
-		}
+	location, err := resp.Location()
+	if err != nil {
+		return "", fmt.Errorf("failed to get redirect location: %w", err)
 	}
 
+	if errorDesc := location.Query().Get("error_description"); errorDesc != "" {
+		return "", fmt.Errorf("authentication failed: %s", errorDesc)
+	}
+
+	code := location.Query().Get("code")
 	if code == "" {
-		return nil, fmt.Errorf("code doesn't retrieved from redirect")
+		return "", fmt.Errorf("authorization code not found in redirect URL")
 	}
 
+	return code, nil
+}
+
+func (c *Client) exchangeCodeForTokens(ctx context.Context, code string) (*tokens, error) {
 	postValues := url.Values{}
+	postValues.Add("code", code)
+	postValues.Add("redirect_uri", redirectURI)
+	postValues.Add("grant_type", "authorization_code")
+	postValues.Add("token_format", tokenFormat)
 	postValues.Add("smcid", "psapp%3Asettings-entrance")
 	postValues.Add("access_type", "offline")
-	postValues.Add("code", code)
 	postValues.Add("service_logo", "ps")
 	postValues.Add("ui", "pr")
 	postValues.Add("elements_visibility", "no_aclink")
-	postValues.Add("redirect_uri", "com.playstation.PlayStationApp://redirect")
 	postValues.Add("support_scheme", "sneiprls")
-	postValues.Add("grant_type", "authorization_code")
 	postValues.Add("darkmode", "true")
 	postValues.Add("device_base_font_size", "10")
 	postValues.Add("device_profile", "mobile")
 	postValues.Add("app_context", "inapp_ios")
 	postValues.Add("extraQueryParams", `{PlatformPrivacyWs1=minimal;}`)
-	postValues.Add("token_format", "jwt")
 
-	var postHeaders = headers{}
-	postHeaders["Content-Type"] = "application/x-www-form-urlencoded"
-	postHeaders["Cookie"] = fmt.Sprintf("npsso=%s", p.npsso)
-	postHeaders["Authorization"] = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
-
-	var tokens tokens
-	err = p.post(ctx, postValues, fmt.Sprintf("%sauthz/v3/oauth/token", authUrl), postHeaders, &tokens)
-	if err != nil {
-		return nil, fmt.Errorf("can't create new POST request: %w ", err)
+	headers := headers{
+		"Content-Type":  "application/x-www-form-urlencoded",
+		"Authorization": basicAuthCredentials,
+		"Cookie":        fmt.Sprintf("npsso=%s", c.npsso),
 	}
 
-	return &tokens, nil
+	var t tokens
+	err := c.post(ctx, fmt.Sprintf("%s/token", authHost), postValues, headers, &t)
+	if err != nil {
+		return nil, fmt.Errorf("token exchange request failed: %w", err)
+	}
+
+	return &t, nil
+}
+
+func (c *Client) setTokens(t *tokens) {
+	c.accessToken = t.AccessToken
+	c.refreshToken = t.RefreshToken
+	c.accessExp = t.AccessExpires
+	c.refreshExp = t.RefreshExpires
 }

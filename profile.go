@@ -56,25 +56,25 @@ type ProfileResponse struct {
 	Profile Profile `json:"profile"`
 }
 
-// Method retrieves user profile info by PSN id
-func (p *psn) GetProfileRequest(ctx context.Context, name string) (profile *Profile, err error) {
+// GetProfile retrieves user profile info by PSN ID.
+func (c *Client) GetProfile(ctx context.Context, onlineID string) (*Profile, error) {
 	var h = headers{}
-	h["authorization"] = fmt.Sprintf("Bearer %s", p.accessToken)
+	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
 
-	userResponse := &ProfileResponse{}
-	err = p.get(
+	var userResponse ProfileResponse
+	err := c.get(
 		ctx,
 		fmt.Sprintf(
 			"https://%s%s%s/profile2?fields=onlineId,aboutMe,consoleAvailability,languagesUsed,avatarUrls,personalDetail,personalDetail(@default,profilePictureUrls),primaryOnlineStatus,trophySummary(level,progress,earnedTrophies),plus,isOfficiallyVerified,friendRelation,personalDetailSharing,presences(@default,platform),npId,blocking,following,currentOnlineId,displayableOldOnlineId,mutualFriendsCount,followerCount&profilePictureSizes=s,m,l&avatarSizes=s,m,l&languagesUsedLanguageSet=set4",
-			p.region,
+			c.region,
 			usersApi,
-			name,
+			onlineID,
 		),
 		h,
 		&userResponse,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("can't do GET request: %w", err)
+		return nil, fmt.Errorf("failed to get profile: %w", err)
 	}
 	return &userResponse.Profile, nil
 }
