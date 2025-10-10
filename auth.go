@@ -33,14 +33,10 @@ func (c *Client) AuthWithNPSSO(ctx context.Context, npsso string) error {
 		return fmt.Errorf("failed to get authorization code: %w", err)
 	}
 
-	fmt.Println("code:", code)
-
 	tokens, err := c.exchangeCodeForTokens(ctx, code)
 	if err != nil {
 		return fmt.Errorf("failed to exchange authorization code for tokens: %w", err)
 	}
-
-	fmt.Println("tokens:", tokens)
 
 	c.setTokens(tokens)
 	return nil
