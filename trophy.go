@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const trophiesApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles/"
+const trophiesApi = ""
 
 type TrophiesResponse struct {
 	Trophies []struct {
@@ -36,12 +36,10 @@ func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, 
 	err := c.get(
 		ctx,
 		fmt.Sprintf(
-			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s",
-			c.region,
-			trophiesApi,
+			"https://m.np.playstation.net/api/trophy/v1/users/%s/trophyTitles/%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&npLanguage=%s",
+			username,
 			trophyTitleId,
 			trophyGroupId,
-			username,
 			c.lang,
 		),
 		h,
