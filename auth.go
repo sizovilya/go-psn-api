@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	authHost             = "https://ca.account.sony.com/api/"
-	scope                = "psn:mobile.v2.core psn:clientapp"
+	authHost             = "https://ca.account.sony.com/api/authz/v3/oauth"
+	redirectURI          = "com.playstation.PlayStationApp://redirect"
+	clientID             = "ac8d161a-d966-4728-b0ea-ffec22f69edc"
+	scope                = "psn:mobile.v1 psn:clientapp"
 	tokenFormat          = "jwt"
 	basicAuthCredentials = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 )
@@ -70,31 +72,30 @@ func (c *Client) AuthWithRefreshToken(ctx context.Context, refreshToken string) 
 }
 
 func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (_ string, err error) {
-	getValues := url.Values{
-		"access_type":           {"offline"},
-		"app_context":           {"inapp_ios"},
-		"auth_ver":              {"v3"},
-		"cid":                   {"60351282-8C5F-4D5E-9033-E48FEA973E11"},
-		"client_id":             {"09515159-7237-4370-9b40-3806e67c0891"},
-		"darkmode":              {"true"},
-		"device_base_font_size": {"10"},
-		"device_profile":        {"mobile"},
-		"duid":                  {"0000000d0004008088347AA0C79542D3B656EBB51CE3EBE1"},
-		"elements_visibility":   {"no_aclink"},
-		"extraQueryParams":      {`{ PlatformPrivacyWs1 = minimal; }`},
-		"no_captcha":            {"true"},
-		"redirect_uri":          {"com.scee.psxandroid.scecompcall://redirect"},
-		"response_type":         {"code"},
-		"scope":                 {"psn:mobile.v2.core psn:clientapp"},
-		"service_entity":        {"urn:service-entity:psn"},
-		"service_logo":          {"ps"},
-		"smcid":                 {"psapp:settings-entrance"},
-		"support_scheme":        {"sneiprls"},
-		"token_format":          {"jwt"},
-		"ui":                    {"pr"},
-	}
+	getValues := url.Values{}
+	getValues.Add("access_type", "offline")
+	getValues.Add("client_id", clientID)
+	getValues.Add("response_type", "code")
+	getValues.Add("scope", scope)
+	getValues.Add("redirect_uri", redirectURI)
+	getValues.Add("app_context", "inapp_ios")
+	getValues.Add("auth_ver", "v3")
+	getValues.Add("cid", "60351282-8C5F-4D5E-9033-E48FEA973E11")
+	getValues.Add("darkmode", "true")
+	getValues.Add("device_base_font_size", "10")
+	getValues.Add("device_profile", "mobile")
+	getValues.Add("duid", "0000000d0004008088347AA0C79542D3B656EBB51CE3EBE1")
+	getValues.Add("elements_visibility", "no_aclink")
+	getValues.Add("extraQueryParams", `{PlatformPrivacyWs1=minimal;}`)
+	getValues.Add("no_captcha", "true")
+	getValues.Add("service_entity", "urn:service-entity:psn")
+	getValues.Add("service_logo", "ps")
+	getValues.Add("smcid", "psapp:settings-entrance")
+	getValues.Add("support_scheme", "sneiprls")
+	getValues.Add("token_format", tokenFormat)
+	getValues.Add("ui", "pr")
 
-	uri, _ := url.Parse(fmt.Sprintf("%s/authz/v3/oauth/authorize", authHost))
+	uri, _ := url.Parse(fmt.Sprintf("%s/authorize", authHost))
 	uri.RawQuery = getValues.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", uri.String(), nil)
@@ -141,32 +142,31 @@ func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (_ stri
 }
 
 func (c *Client) exchangeCodeForTokens(ctx context.Context, code string) (*tokens, error) {
-	postValues := url.Values{
-		"smcid":                 {"psapp%3Asettings-entrance"},
-		"access_type":           {"offline"},
-		"code":                  {code},
-		"service_logo":          {"ps"},
-		"ui":                    {"pr"},
-		"elements_visibility":   {"no_aclink"},
-		"redirect_uri":          {"com.scee.psxandroid.scecompcall://redirect"},
-		"support_scheme":        {"sneiprls"},
-		"grant_type":            {"authorization_code"},
-		"darkmode":              {"true"},
-		"device_base_font_size": {"10"},
-		"device_profile":        {"mobile"},
-		"app_context":           {"inapp_ios"},
-		"extraQueryParams":      {`{ PlatformPrivacyWs1 = minimal; }`},
-		"token_format":          {"jwt"},
-	}
+	postValues := url.Values{}
+	postValues.Add("code", code)
+	postValues.Add("redirect_uri", redirectURI)
+	postValues.Add("grant_type", "authorization_code")
+	postValues.Add("token_format", tokenFormat)
+	postValues.Add("smcid", "psapp%3Asettings-entrance")
+	postValues.Add("access_type", "offline")
+	postValues.Add("service_logo", "ps")
+	postValues.Add("ui", "pr")
+	postValues.Add("elements_visibility", "no_aclink")
+	postValues.Add("support_scheme", "sneiprls")
+	postValues.Add("darkmode", "true")
+	postValues.Add("device_base_font_size", "10")
+	postValues.Add("device_profile", "mobile")
+	postValues.Add("app_context", "inapp_ios")
+	postValues.Add("extraQueryParams", `{PlatformPrivacyWs1=minimal;}`)
 
 	headers := headers{
 		"Content-Type":  "application/x-www-form-urlencoded",
-		"Authorization": "Basic MDk1MTUxNTktNzIzNy00MzcwLTliNDAtMzgwNmU2N2MwODkxOnVjUGprYTV0bnRCMktxc1A=",
+		"Authorization": basicAuthCredentials,
 		"Cookie":        fmt.Sprintf("npsso=%s", c.npsso),
 	}
 
 	var t tokens
-	err := c.post(ctx, fmt.Sprintf("%s/authz/v3/oauth/token", authHost), postValues, headers, &t)
+	err := c.post(ctx, fmt.Sprintf("%s/token", authHost), postValues, headers, &t)
 	if err != nil {
 		return nil, fmt.Errorf("token exchange request failed: %w", err)
 	}
