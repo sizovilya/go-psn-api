@@ -9,7 +9,7 @@ import (
 
 const (
 	authHost             = "https://ca.account.sony.com/api/"
-	scope                = "psn:mobile.v2.core psn:clientapp"
+	scope                = "psn:mobile.v2.core psn:clientapp psn:trophy"
 	tokenFormat          = "jwt"
 	basicAuthCredentials = "Basic YWM4ZDE2MWEtZDk2Ni00NzI4LWIwZWEtZmZlYzIyZjY5ZWRjOkRFaXhFcVhYQ2RYZHdqMHY="
 )
@@ -85,7 +85,7 @@ func (c *Client) getAuthorizationCode(ctx context.Context, npsso string) (_ stri
 		"no_captcha":            {"true"},
 		"redirect_uri":          {"com.scee.psxandroid.scecompcall://redirect"},
 		"response_type":         {"code"},
-		"scope":                 {"psn:mobile.v2.core psn:clientapp"},
+		"scope":                 {"psn:mobile.v2.core psn:clientapp psn:trophy"},
 		"service_entity":        {"urn:service-entity:psn"},
 		"service_logo":          {"ps"},
 		"smcid":                 {"psapp:settings-entrance"},
