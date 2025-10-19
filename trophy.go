@@ -36,7 +36,7 @@ func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, 
 	err := c.get(
 		ctx,
 		fmt.Sprintf(
-			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s",
+			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s&npServiceName=trophy",
 			c.region,
 			trophiesApi,
 			trophyTitleId,
