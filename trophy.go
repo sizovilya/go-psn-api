@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const trophiesApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles/"
+const trophiesApi = "m.np.playstation.com/api/trophy/v1/users/"
 
 type TrophiesResponse struct {
 	Trophies []struct {
@@ -29,20 +29,17 @@ type TrophiesResponse struct {
 func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, username string) (*TrophiesResponse, error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
-	h["Accept"] = "*/*"
-	h["Accept-Encoding"] = "gzip, deflate, br"
+	h["Accept-Language"] = c.lang
 
 	var trophiesResponse TrophiesResponse
 	err := c.get(
 		ctx,
 		fmt.Sprintf(
-			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s",
-			c.region,
+			"https://%s%s/npCommunicationIds/%s/trophyGroups/%s/trophies?npServiceName=trophy",
 			trophiesApi,
+			username,
 			trophyTitleId,
 			trophyGroupId,
-			username,
-			c.lang,
 		),
 		h,
 		&trophiesResponse,
