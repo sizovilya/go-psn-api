@@ -129,7 +129,7 @@ func main() {
 - The API no longer uses region-specific endpoints for trophy operations.
 
 **Account ID vs Online ID:**
-- Some methods accept `onlineId` (username like "VaultTec_Trading")
+- Some methods accept `onlineId` (username like "geeek_52rus")
 - Trophy-related methods require `accountId` (use `"me"` for your account or a numeric account ID for others)
 This project highly inspired by https://github.com/Tustin/psn-php. Some useful things like auth headers and params found in `Tustin/psn-php`. 
 <p align="center"> <img src="assets/gopher-dance.gif"> </p>
