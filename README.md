@@ -45,12 +45,12 @@ Copy this js code:
 </details>
 
 ### Functionality
-- You can get user profile info
-- You can get trophy titles
-- You can get trophy groups
-- You can get trophies
+- Get user profile information
+- Get trophy titles for a user
+- Get trophy groups for a specific title
+- Get trophies for a specific title and group
 
-### Example    
+### Example
 ```go
 package main
 
@@ -86,15 +86,16 @@ func main() {
 	// 	panic(err)
 	// }
 
-	// Get user profile information.
-	profile, err := client.GetProfile(ctx, "geeek_52rus")
+	// Get user profile information by Online ID (username).
+	profile, err := client.GetProfile(ctx, "your_psn_username")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Profile: %+v\n", profile)
 
-	// Get trophy titles.
-	trophyTitles, err := client.GetTrophyTitles(ctx, "geeek_52rus", 50, 0)
+	// Get trophy titles for your account.
+	// Use "me" for your own account, or a numeric accountId for other users.
+	trophyTitles, err := client.GetTrophyTitles(ctx, "me", 50, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -103,7 +104,7 @@ func main() {
 	// Get trophy groups for a specific title.
 	if len(trophyTitles.TrophyTitles) > 0 {
 		trophyTitleID := trophyTitles.TrophyTitles[0].NpCommunicationID
-		trophyGroups, err := client.GetTrophyGroups(ctx, trophyTitleID, "geeek_52rus")
+		trophyGroups, err := client.GetTrophyGroups(ctx, trophyTitleID, "me")
 		if err != nil {
 			panic(err)
 		}
@@ -111,12 +112,24 @@ func main() {
 	}
 
 	// Get trophies for a specific title and group.
-	trophies, err := client.GetTrophies(ctx, "NPWR13348_00", "001", "geeek_52rus")
+	// Parameters: npCommunicationId, trophyGroupId (e.g., "default" or "001"), accountId
+	trophies, err := client.GetTrophies(ctx, "NPWR20188_00", "default", "me")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Trophies: %+v\n", trophies)
 }
 ```
+
+### Important Notes
+
+**API Changes (v2 API Migration):**
+- `GetTrophyTitles()` now requires an `accountId` parameter instead of `username`. Use `"me"` for your own account.
+- `GetTrophies()` now uses the updated PSN API endpoint (`m.np.playstation.com/api/trophy/v1`).
+- The API no longer uses region-specific endpoints for trophy operations.
+
+**Account ID vs Online ID:**
+- Some methods accept `onlineId` (username like "VaultTec_Trading")
+- Trophy-related methods require `accountId` (use `"me"` for your account or a numeric account ID for others)
 This project highly inspired by https://github.com/Tustin/psn-php. Some useful things like auth headers and params found in `Tustin/psn-php`. 
 <p align="center"> <img src="assets/gopher-dance.gif"> </p>
