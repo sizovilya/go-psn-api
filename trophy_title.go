@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const trophyTitleApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles?"
+const trophyTitleApi = "m.np.playstation.com/api/trophy/v1/users/"
 
 type TrophyTitleResponse struct {
 	TotalResults int `json:"totalResults"`
@@ -53,23 +53,21 @@ type TrophyTitleResponse struct {
 }
 
 // GetTrophyTitles retrieves a user's trophy titles.
-func (c *Client) GetTrophyTitles(ctx context.Context, username string, limit, offset int) (*TrophyTitleResponse, error) {
+// accountId: Use "me" for the authenticating account or a numeric accountId to query another user's titles.
+func (c *Client) GetTrophyTitles(ctx context.Context, accountId string, limit, offset int) (*TrophyTitleResponse, error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
-	h["Accept"] = "*/*"
-	h["Accept-Encoding"] = "gzip, deflate, br"
+	h["Accept-Language"] = c.lang
 
 	var response TrophyTitleResponse
 	err := c.get(
 		ctx,
 		fmt.Sprintf(
-			"https://%s%sfields=@default,trophyTitleSmallIconUrl&platform=PS3,PS4,PSVITA&limit=%d&offset=%d&comparedUser=%s&npLanguage=%s",
-			c.region,
+			"https://%s%s/trophyTitles?limit=%d&offset=%d",
 			trophyTitleApi,
+			accountId,
 			limit,
 			offset,
-			username,
-			c.lang,
 		),
 		h,
 		&response,

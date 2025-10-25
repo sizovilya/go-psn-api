@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const trophiesApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles/"
+const trophiesApi = "m.np.playstation.com/api/trophy/v1/users/"
 
 type TrophiesResponse struct {
 	Trophies []struct {
@@ -26,27 +26,36 @@ type TrophiesResponse struct {
 }
 
 // GetTrophies retrieves a user's trophies for a specific title and group.
-func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, username string) (*TrophiesResponse, error) {
+// accountId: Use "me" for the authenticating account or a numeric accountId to query another user's trophies.
+// trophyGroupId: Use "all" to get all trophies, "default" for base game, or specific group IDs like "001", "002", etc.
+// Note: For PS5/PC games, no npServiceName is needed. For PS3/PS4/Vita games, use GetTrophiesWithServiceName with npServiceName="trophy".
+func (c *Client) GetTrophies(ctx context.Context, trophyTitleId, trophyGroupId, accountId string) (*TrophiesResponse, error) {
+	return c.GetTrophiesWithServiceName(ctx, trophyTitleId, trophyGroupId, accountId, "")
+}
+
+// GetTrophiesWithServiceName retrieves a user's trophies for a specific title and group with an explicit npServiceName.
+// accountId: Use "me" for the authenticating account or a numeric accountId to query another user's trophies.
+// trophyGroupId: Use "all" to get all trophies, "default" for base game, or specific group IDs like "001", "002", etc.
+// npServiceName: Use "trophy" for PS3/PS4/Vita, "trophy2" for PS5/PC, or "" (empty) to omit the parameter.
+func (c *Client) GetTrophiesWithServiceName(ctx context.Context, trophyTitleId, trophyGroupId, accountId, npServiceName string) (*TrophiesResponse, error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
-	h["Accept"] = "*/*"
-	h["Accept-Encoding"] = "gzip, deflate, br"
+	h["Accept-Language"] = c.lang
 
 	var trophiesResponse TrophiesResponse
-	err := c.get(
-		ctx,
-		fmt.Sprintf(
-			"https://%s%s%s/trophyGroups/%s/trophies?fields=@default,trophyRare,trophyEarnedRate,trophySmallIconUrl&visibleType=1&comparedUser=%s&npLanguage=%s",
-			c.region,
-			trophiesApi,
-			trophyTitleId,
-			trophyGroupId,
-			username,
-			c.lang,
-		),
-		h,
-		&trophiesResponse,
+	url := fmt.Sprintf(
+		"https://%s%s/npCommunicationIds/%s/trophyGroups/%s/trophies",
+		trophiesApi,
+		accountId,
+		trophyTitleId,
+		trophyGroupId,
 	)
+
+	if npServiceName != "" {
+		url += "?npServiceName=" + npServiceName
+	}
+
+	err := c.get(ctx, url, h, &trophiesResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get trophies: %w", err)
 	}

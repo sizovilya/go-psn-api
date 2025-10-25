@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const trophyGroupApi = "-tpy.np.community.playstation.net/trophy/v1/trophyTitles/"
+const trophyGroupApi = "m.np.playstation.com/api/trophy/v1/users/"
 
 type TrophyGroupResponse struct {
 	TrophyTitleName     string `json:"trophyTitleName"`
@@ -46,22 +46,20 @@ type TrophyGroupResponse struct {
 }
 
 // GetTrophyGroups retrieves a user's trophy groups for a specific title.
-func (c *Client) GetTrophyGroups(ctx context.Context, trophyTitleId, username string) (*TrophyGroupResponse, error) {
+// accountId: Use "me" for the authenticating account or a numeric accountId to query another user's trophy groups.
+func (c *Client) GetTrophyGroups(ctx context.Context, trophyTitleId, accountId string) (*TrophyGroupResponse, error) {
 	var h = headers{}
 	h["authorization"] = fmt.Sprintf("Bearer %s", c.accessToken)
-	h["Accept"] = "*/*"
-	h["Accept-Encoding"] = "gzip, deflate, br"
+	h["Accept-Language"] = c.lang
 
 	var response TrophyGroupResponse
 	err := c.get(
 		ctx,
 		fmt.Sprintf(
-			"https://%s%s%s/trophyGroups?fields=@default,trophyGroupSmallIconUrl&comparedUser=%s&npLanguage=%s",
-			c.region,
+			"https://%s%s/npCommunicationIds/%s/trophyGroups",
 			trophyGroupApi,
+			accountId,
 			trophyTitleId,
-			username,
-			c.lang,
 		),
 		h,
 		&response,
